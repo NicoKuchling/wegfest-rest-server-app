@@ -1,0 +1,15 @@
+de\nicokuchling\wegfest_rest_server_app\api\QuestionsApi.class
+de\nicokuchling\wegfest_rest_server_app\model\SceneData.class
+de\nicokuchling\wegfest_rest_server_app\api\impl\PersonsApiServiceImpl.class
+de\nicokuchling\wegfest_rest_server_app\api\impl\IterationsApiServiceImpl.class
+de\nicokuchling\wegfest_rest_server_app\model\Answer.class
+de\nicokuchling\wegfest_rest_server_app\api\PersonsApi.class
+de\nicokuchling\wegfest_rest_server_app\model\Person.class
+de\nicokuchling\wegfest_rest_server_app\model\Iteration.class
+de\nicokuchling\wegfest_rest_server_app\api\ScenesApi.class
+de\nicokuchling\wegfest_rest_server_app\api\impl\ScenesApiServiceImpl.class
+de\nicokuchling\wegfest_rest_server_app\api\impl\QuestionsApiServiceImpl.class
+de\nicokuchling\wegfest_rest_server_app\model\Question.class
+de\nicokuchling\wegfest_rest_server_app\model\Scene.class
+de\nicokuchling\wegfest_rest_server_app\api\IterationsApi.class
+de\nicokuchling\wegfest_rest_server_app\helper\ObjectMapperProvider.class

@@ -1,0 +1,653 @@
+openapi: 3.0.0
+info:
+  title: Wegfest API
+  description: API zur Kommunikation mit der Oculus Quest.
+  version: 0.0.1
+  
+servers:
+  - url: http://localhost:8080/api
+    description: URL für die lokale Testumgebung
+    
+components:
+  schemas:
+  
+    Person:
+      type: object
+      properties:
+        _id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth: 
+          type: string
+          format: date
+        gender:
+          type: string
+      required:
+        - _id
+        - firstName
+        - lastName
+        - dateOfBirth
+        - gender
+        
+    Answer:
+      type: object
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+          
+    Question:
+      type: object
+      properties:
+        _id:
+          type: string
+        question:
+          type: string
+        answers:
+          type: array
+          items: 
+            $ref: '#/components/schemas/Answer'
+    
+    Scene:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description: 
+          type: string
+        difficulty:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+            
+    SceneData:
+      type: object
+      properties:
+        _id:
+          type: string
+        scene:
+          $ref: '#/components/schemas/Scene'
+        unitySceneId:
+          type: string
+        playerPosition:
+          type: string
+        daytime:
+          type: string
+        speedLimit:
+          type: integer
+        eMobilityFrequency:
+          type: string
+        trafficVolume:
+          type: string
+        cyclists:
+          type: boolean
+        crossingDuration:
+          type: number
+          format: double
+        timeForOrientation:
+          type: number
+          format: double
+        numberOfDangerousSituations:
+          type: integer
+        numberOfAccidents:
+          type: integer
+        numberOfCrossingAttempts:
+          type: integer
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Answer'
+            
+    Iteration:
+      type: object
+      properties:
+        _id:
+          type: string
+        person:
+          $ref: '#/components/schemas/Person'
+        completed:
+          type: boolean
+        wasAborted:
+          type: boolean
+        dateOfCompletion:
+          type: string
+          format: date
+        sceneData:
+          $ref: '#/components/schemas/SceneData'
+        
+    
+paths:
+  /iterations:
+    get:
+      tags:
+        - Iterations
+      summary: Liefert alle Iterationen zurück
+      description: Liefert all in der Datenbank vorhandenen Iterationen zurück
+      operationId: getAllIterations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Iteration'
+        '401':
+          description: Authorization Information is Missing or Invalid
+    
+    post:
+      tags:
+        - Iterations
+      summary: Erstellt eine neue Iteration
+      description: Persistiert die Iteration mit den übergebenen Attributen in der Datenbank
+      operationId: createIteration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Iteration'
+      responses:
+        '201':
+          description: Iteration Created Successfully
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Authorization Information is Missing or Invalid
+
+  /iterations/showNext:
+    get:
+      tags:
+        - Iterations
+      summary: Liefert die nächste Iteration zurück
+      description: Liefert die nächste Iteration aus der Liste der offenen Iterationen zurück, ohne diese aus der Liste zu löschen
+      operationId: showNextIteration
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Iteration'
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No More Iterations Found
+  
+  /iterations/getNext:
+    get:
+      tags:
+        - Iterations
+      summary: Liefert die nächste Iteration zurück
+      description: Liefert die nächste Iteration aus der Liste der offenen Iterationen zurück und löscht diese aus der Liste
+      operationId: getNextIteration
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Iteration'
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No More Iterations Found
+                
+  /iterations/{id}:
+    get:
+      tags:
+        - Iterations
+      summary: Liefert die Iteration mit der angegebenen ID zurück
+      description: Liefert die Iteration mit der angegebenen ID zurück
+      operationId: getIteration
+      parameters:
+        - in: path
+          name: id
+          description: Iteration ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Iteration'
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Iteration With Corresponding ID Found.
+      
+    put:
+      tags:
+        - Iterations
+      summary: Aktualisiert die Iteration mit der angegebenen ID
+      description: Aktualisiert die Iteration mit den entsprechenden Werten aus dem Request Body
+      operationId: updateIteration
+      parameters:
+        - in: path
+          name: id
+          description: Iteration ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Iteration'
+      responses:
+        '201':  #HTTP status code for newly created resources
+          description: Iteration Created Successfully
+        '204':  #HTTP status code for responses without any content
+          description: Iteration Updated Successfully
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Authorization Information is Missing or Invalid
+                
+    delete:
+      tags:
+        - Iterations
+      summary: Löscht die Iteration mit der angegebenen ID
+      description: Löscht die Iteration mit der angegebenen ID aus der Datenbank
+      operationId: deleteIteration
+      parameters:
+        - in: path
+          name: id
+          description: Iteration ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Iteration Deleted Successfully
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Iteration With Corresponding ID Found
+                
+  /persons:
+    get:
+      tags:
+        - Persons
+      summary: Liefert alle Personen zurück.
+      description: Liefert alle in der Datenbank vorhandenen Personen zurück
+      operationId: getAllPersons
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Person'
+        '401':
+          description: Authorization Information is Missing or Invalid
+                  
+    post:
+      tags:
+        - Persons
+      summary: Erstellt eine neue Person
+      description: Persistiert die Person mit den übergebenen Attributen in der Datenbank
+      operationId: createPerson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Person'
+      responses:
+        '201':
+          description: Person Created Successfully
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Authorization Information is Missing or Invalid
+  
+  /persons/{id}:
+    get:
+      tags:
+        - Persons
+      summary: Liefert die Person mit der angegebenen ID zurück
+      description: Liefert die Person mit der angegebenen ID zurück
+      operationId: findPersonById
+      parameters:
+        - in: path
+          name: id
+          description: Person ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Person With Corresponding ID Found
+          
+    put:
+      tags:
+        - Persons
+      summary: Aktualisiert die Person mit der angegebenen ID
+      description: Aktualisiert die Person mit den entsprechenden Werten aus dem Request Body
+      operationId: updatePerson
+      parameters:
+        - in: path
+          name: id
+          description: Person ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Person'
+      responses:
+        '201':
+          description: Person Created Successfully
+        '204':
+          description: Person Updated Successfully
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Authorization Information is Missing or Invalid
+                
+    delete:
+      tags:
+        - Persons
+      summary: Löscht die Person mit der angegebenen ID
+      description: Löscht die Person mit der angegebenen ID aus der Datenbank
+      operationId: deletePerson
+      parameters:
+        - in: path
+          name: id
+          description: Person ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Person Deleted Successfully
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Person With Corresponding ID Found
+          
+  /scenes:
+    get:
+      tags:
+        - Scenes
+      summary: Liefert alle Szenen zurück
+      description: Liefert alle in der Datenbank vorhandenen Szenen zurück
+      operationId: getAllScenes
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Scene'
+        '401':
+          description: Authorization Information is Missing or Invalid
+                
+    post:
+      tags:
+        - Scenes
+      summary: Erstellt eine neue Szene
+      description: Persistiert die Szene mit den übergebenen Attributen in der Datenbank
+      operationId: createScene
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Scene'
+      responses:
+        '201':
+          description: Scene Created Successfully
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Authorization Information is Missing or Invalid
+    
+  /scenes/{id}:
+    get:
+      tags:
+        - Scenes
+      summary: Liefert die Szene mit der angegebenen ID zurück
+      description: Liefert die Szene mit der angegebenen ID zurück
+      operationId: getScene
+      parameters:
+        - in: path
+          name: id
+          description: Scene ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Scene With Corresponding ID Found
+  
+    put:
+      tags:
+        - Scenes
+      summary: Aktualisiert die Szene mit der angegbenen ID
+      description: Aktualisiert die Szene mit den entsprechenden Werten aus dem Request Body
+      operationId: updateScene
+      parameters:
+        - in: path
+          name: id
+          description: Scene ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Scene'
+      responses:
+        '201':
+          description: Scene Created Successfully
+        '204':
+          description: Scene Updated Successfully
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                
+    delete:
+      tags:
+        - Scenes
+      summary: Löscht die Szene mit der angegebenen ID
+      description: Löscht die Szene mit der angegebenen ID aus der Datenbank
+      operationId: deleteScene
+      parameters:
+        - in: path
+          name: id
+          description: Scene ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Scene Deleted Successfully
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Scene With Corresponding ID Found
+          
+  /questions:
+    get:
+      tags:
+        - Questions
+      summary: Liefert alle Fragen zurück
+      description: Liefert alle in der Datenbank vorhandenen Fragen zurück
+      operationId: getAllQuestions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+        '401':
+          description: Authorization Information is Missing or Invalid
+    
+    post:
+      tags:
+        - Questions
+      summary: Erstellt eine neue Frage
+      description: Persistiert die Frage mit den übergebenen Attributen in der Datenbank
+      operationId: createQuestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Question'
+      responses:
+        '201':
+          description: Question Created Successfully
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+                
+  /questions/{id}:
+    get:
+      tags:
+        - Questions
+      summary: Liefert die Frage mit der angegebenen ID zurück
+      description: Liefert die Frage mit der angegebenen ID zurück
+      operationId: getQuestion
+      parameters:
+        - in: path
+          name: id
+          description: Question ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Question With Corresponding ID Found
+    
+    put:
+      tags:
+        - Questions
+      summary: Aktualisiert die Frage mit der angegebenen ID
+      description: Aktualisiert die Frage mit den entsprechenden Werten aus dem Request Body
+      operationId: updateQuestion
+      parameters:
+        - in: path
+          name: id
+          description: Question ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Question'
+      responses:
+        '201':
+          description: Question Created Successfully
+        '204':
+          description: Question Updated Successfully
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '400':
+          description: Bad Request
+          content:
+            text/plain:
+              schema:
+                type: string
+            
+    delete:
+      tags:
+        - Questions
+      summary: Löscht die Frage mit der angegebenen ID
+      description: Löscht die Frage mit der angegebenen ID aus der Datenbank
+      operationId: deleteQuestion
+      parameters:
+        - in: path
+          name: id
+          description: Question ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Question Deleted Successfully
+        '401':
+          description: Authorization Information is Missing or Invalid
+        '404':
+          description: No Question With Corresponding ID Found
+                
+                
+  
+                
+      
